@@ -32,3 +32,10 @@ Resource Override is an extension to help you gain full control of any website b
 
 ### Now on firefox!
 [Get the FireFox extension here](https://addons.mozilla.org/en-US/firefox/addon/resourceoverride/)
+
+### How to install
+In the extensions page you just have to click on "load unpacked extension" (when you've activated developer mode at the top right of the page), select the cloned folder and you're done
+
+Otherwise you can clone the repo, pack it and provide the packaged extension directly in the extension section.
+
+https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world?hl=fr
