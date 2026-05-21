@@ -20,7 +20,7 @@ export const transformMatchReplace = (match = "", replace = "") => {
     return result;
 };
 
-const setupNetRequestRules = (group = {}, deletedRuleIds = [], ruleErrors = {}) => {
+const setupNetRequestRules = async (group = {}, deletedRuleIds = [], ruleErrors = {}) => {
     const allRuleIds = [];
     const ruleIdToRule = {};
     const rules = group.rules || [];
@@ -31,6 +31,13 @@ const setupNetRequestRules = (group = {}, deletedRuleIds = [], ruleErrors = {}) 
     const removeRuleIds = allRuleIds.concat(deletedRuleIds);
     const newRules = [];
     if (group.on) {
+        const fileOverrideRules = rules.filter(r => r.type === 'fileOverride' && r.on && r.file === undefined);
+        if (fileOverrideRules.length > 0) {
+            const fileIds = Object.fromEntries(fileOverrideRules.map(r => [`f${r.id}`, '']));
+            const files = await chrome.storage.local.get(fileIds);
+            fileOverrideRules.forEach(r => { r.file = files[`f${r.id}`] || ''; });
+        }
+
         rules.forEach((rule, idx) => {
             const priority = 10 + rules.length - idx;
             if (rule.on && !ruleErrors[rule.id]) {

@@ -1,11 +1,13 @@
 /* globals chrome, ace, js_beautify */
 import extractMimeType from "./extractMime.js";
 import { getUiElements, createEl, isChrome, getTabResources, shortenString, saveDataAndSync } from "./util.js";
+import setupNetRequestRules from "./netRequestRules.js";
 
 const ui = getUiElements(document);
 
 let editor;
 let fileId;
+let isFileInject;
 
 function updateSaveButtons(edited) {
     if (edited) {
@@ -37,13 +39,21 @@ function editorGuessMode(fileName, file) {
     editor.getSession().setMode("ace/mode/" + mode);
 }
 
-function saveFile() {
+async function saveFile() {
     updateSaveButtons();
-    saveDataAndSync({ [fileId]: editor.getValue() });
+    await saveDataAndSync({ [fileId]: editor.getValue() });
+    if (!isFileInject) {
+        const ruleId = parseInt(fileId.substring(1));
+        const { ruleGroups } = await chrome.storage.local.get({ ruleGroups: [] });
+        const group = ruleGroups.find(g => (g.rules || []).some(r => r.id === ruleId));
+        if (group) {
+            setupNetRequestRules(group);
+        }
+    }
 }
 
-function saveFileAndClose() {
-    saveFile();
+async function saveFileAndClose() {
+    await saveFile();
     ui.editorOverlay.style.display = "none";
     ui.body.style.overflow = "auto";
 }
@@ -91,6 +101,7 @@ function setupEditor() {
 
 export const openEditor = async (ruleId, match, isInjectFile) => {
     fileId = `f${ruleId}`;
+    isFileInject = isInjectFile;
     updateSaveButtons();
     ui.editorOverlay.style.display = "flex";
     ui.body.style.overflow = "hidden";

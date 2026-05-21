@@ -43,7 +43,7 @@ export const getDomainData = (domain) => {
 
     return {
         id: parseInt(domain.id.substring(1), 10),
-        matchUrl: domain.querySelector(".domainMatchInput").value,
+        name: domain.querySelector(".domainMatchInput").value,
         rules: rules,
         on: domain.querySelector(".onoffswitch-checkbox").checked
     };

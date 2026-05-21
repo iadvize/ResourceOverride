@@ -4,7 +4,29 @@ import { transformMatchReplace } from "./netRequestRules.js";
 let allRuleGroups = [];
 const reloadData = async () => {
     const existingData = await chrome.storage.local.get({ ruleGroups: [] });
-    allRuleGroups = existingData.ruleGroups;
+    const ruleGroups = existingData.ruleGroups;
+
+    const fileIds = {};
+    ruleGroups.forEach(group => {
+        (group.rules || []).forEach(rule => {
+            if (rule.type === 'fileInject') {
+                fileIds[`f${rule.id}`] = '';
+            }
+        });
+    });
+
+    if (Object.keys(fileIds).length > 0) {
+        const files = await chrome.storage.local.get(fileIds);
+        ruleGroups.forEach(group => {
+            (group.rules || []).forEach(rule => {
+                if (rule.type === 'fileInject') {
+                    rule.file = files[`f${rule.id}`] || '';
+                }
+            });
+        });
+    }
+
+    allRuleGroups = ruleGroups;
 };
 reloadData();
 
@@ -78,7 +100,7 @@ chrome.webNavigation.onCommitted.addListener((details) => {
                             func: code => {
                                 const el = document.createElement('script');
                                 el.textContent = code;
-                                document.head.appendChild(el);
+                                (document.head || document.documentElement).appendChild(el);
                                 el.remove();
                             },
                             args: [rule.file],
