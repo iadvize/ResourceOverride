@@ -32,11 +32,11 @@ const initOptions = () => {
         });
     });
 
-    ui.saveRulesLink.addEventListener("click", (e) => {
+    ui.saveRulesLink.addEventListener("click", async (e) => {
         e.preventDefault();
-        const data = exportData();
+        const data = await exportData();
         const json = JSON.stringify(data);
-        const blob = new Blob([json], {type: "text/plain"});
+        const blob = new Blob([json], {type: "application/json"});
         const downloadLink = document.createElement("a");
         downloadLink.download = "resource_override_rules.json";
         downloadLink.href = window.URL.createObjectURL(blob);
@@ -57,7 +57,8 @@ const initOptions = () => {
             const text = reader.result;
             try {
                 const importedObj = JSON.parse(text);
-                importData(importedObj.data, importedObj.v);
+                const payload = importedObj.ruleGroups ?? importedObj.data;
+                importData(payload, importedObj.v);
             } catch (e) {
                 showToast("Load Failed: Invalid JSON in file.");
             }
