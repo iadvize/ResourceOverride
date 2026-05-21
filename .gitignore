@@ -1,3 +1,6 @@
 *.pem
 *.crx
 *.xpi
+
+# Local-only branded assets (e.g. corporate logo). See README "Custom logo".
+/assets/

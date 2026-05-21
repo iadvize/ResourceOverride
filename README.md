@@ -24,6 +24,31 @@ Thanks everyone for using RO.
 
 I wish you the best.
 
+### Custom logo (local override)
+
+Default extension icons live in `icons/` and are committed to the repo.
+To swap in a custom (e.g. corporate) logo without polluting git history:
+
+1. Drop your source logo as `assets/<your-logo>.{png,jpg}` — the `assets/`
+   directory is gitignored, so nothing leaks to the open-source branch.
+2. Resize it into the three required sizes, overwriting the defaults
+   locally. On macOS:
+
+   ```sh
+   sips -s format png -z 16 16   assets/<your-logo> --out icons/icon-16x16.png
+   sips -s format png -z 48 48   assets/<your-logo> --out icons/icon-48x48.png
+   sips -s format png -z 128 128 assets/<your-logo> --out icons/icon-128x128.png
+   ```
+
+3. Tell git to ignore changes to the three icon files so you can't
+   accidentally commit them:
+
+   ```sh
+   git update-index --skip-worktree icons/icon-16x16.png icons/icon-48x48.png icons/icon-128x128.png
+   ```
+
+   To revert: `git update-index --no-skip-worktree icons/icon-*.png && git checkout icons/`.
+
 ### Old Readme text:
 
 Resource Override is an extension to help you gain full control of any website by redirecting traffic, replacing, editing, or inserting new content.
