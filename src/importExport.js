@@ -54,7 +54,7 @@ const checkObject = (obj, requiredFields = [], customTests = {}) => {
         const val = obj[requiredField];
         const customTest = customTests[requiredField] || (() => true);
         if (val === undefined || !customTest(val)) {
-            throw new Error("Invalid field: ", requiredField);
+            throw new Error("Invalid field: " + requiredField);
         }
     });
     return true;
@@ -122,6 +122,14 @@ const versionedImports = {
         return saveDataAndSync(dataToStore);
     },
     v2: (data, existingRuleGroups = []) => {
+        // Backward compat: older v2 exports used the v1 `matchUrl` field name.
+        if (Array.isArray(data)) {
+            data.forEach(group => {
+                if (group && group.name === undefined && group.matchUrl !== undefined) {
+                    group.name = group.matchUrl;
+                }
+            });
+        }
         const ruleGroupFields = ['id', 'name', 'on', 'rules'];
         checkObject({ data }, ['data'], {
             data: val => Array.isArray(val) && val.every(group => checkObject(group, ruleGroupFields, {
@@ -182,10 +190,12 @@ export const importData = async (data, version) => {
     const importFunc = versionedImports[`v${version}`];
     if (!importFunc) {
         showToast("Load Failed: Invalid format version.");
+        return;
     }
     const existingData = await chrome.storage.local.get({ ruleGroups: [] });
     try {
         await importFunc(data, existingData.ruleGroups);
+        window.dispatchEvent(new CustomEvent("ruleGroupsReplaced"));
         showToast("Load Succeeded!");
     } catch (e) {
         console.error(e);

@@ -155,6 +155,11 @@ async function init() {
         }
     });
 
+    window.addEventListener("ruleGroupsReplaced", () => {
+        closeEditor();
+        renderData();
+    });
+
     if (navigator.userAgent.indexOf("Firefox") > -1 && !!chrome.devtools) {
         // Firefox is really broken with the "/" and "'" keys. They just dont work.
         // So try to fix them here.. wow.. just wow. I can't believe I'm fixing the ability to type.
