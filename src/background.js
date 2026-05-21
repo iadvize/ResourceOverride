@@ -1,8 +1,10 @@
 /* globals chrome */
-import { transformMatchReplace } from "./netRequestRules.js";
+import setupNetRequestRules, { transformMatchReplace } from "./netRequestRules.js";
 
 let allRuleGroups = [];
-const reloadData = async () => {
+let readyPromise;
+
+const reloadData = async ({ rebuildDNR = false } = {}) => {
     const existingData = await chrome.storage.local.get({ ruleGroups: [] });
     const ruleGroups = existingData.ruleGroups;
 
@@ -27,13 +29,27 @@ const reloadData = async () => {
     }
 
     allRuleGroups = ruleGroups;
+
+    if (rebuildDNR) {
+        for (const group of ruleGroups) {
+            try {
+                await setupNetRequestRules(group);
+            } catch (e) {
+                console.error("Failed to rebuild DNR for group", group.id, e);
+            }
+        }
+    }
 };
-reloadData();
+readyPromise = reloadData({ rebuildDNR: true });
+
+chrome.runtime.onInstalled.addListener(() => {
+    readyPromise = reloadData({ rebuildDNR: true });
+});
 
 
 const actions = {
     sync: () => {
-        reloadData();
+        readyPromise = reloadData();
     }
 };
 
@@ -86,35 +102,38 @@ const urlMatches = (matchStr, url) => {
     return regex && regex.test(url);
 };
 
-// TODO: This code will probably get me denied
-chrome.webNavigation.onCommitted.addListener((details) => {
-    allRuleGroups.forEach((ruleGroup) => {
-        if (ruleGroup.on) {
-            const rules = ruleGroup.rules || [];
-            rules.forEach((rule) => {
-                if (rule.on && rule.type === "fileInject" && urlMatches(rule.match, details.url)) {
-                    if (rule.fileType === "js") {
-                        chrome.scripting.executeScript({
-                            target: { tabId: details.tabId, frameIds: [details.frameId] },
-                            // injectImmediately: true,
-                            func: code => {
-                                const el = document.createElement('script');
-                                el.textContent = code;
-                                (document.head || document.documentElement).appendChild(el);
-                                el.remove();
-                            },
-                            args: [rule.file],
-                            world: 'MAIN',
-                        });
-                    } else if (rule.fileType === 'css') {
-                        chrome.scripting.insertCSS({
-                            target: { tabId: details.tabId },
-                            css: rule.file,
-                            origin: "USER"
-                        });
-                    }
+chrome.webNavigation.onCommitted.addListener(async (details) => {
+    try {
+        await readyPromise;
+    } catch {}
+    for (const ruleGroup of allRuleGroups) {
+        if (!ruleGroup.on) continue;
+        const rules = ruleGroup.rules || [];
+        for (const rule of rules) {
+            if (!(rule.on && rule.type === "fileInject" && urlMatches(rule.match, details.url))) continue;
+            try {
+                if (rule.fileType === "js") {
+                    await chrome.scripting.executeScript({
+                        target: { tabId: details.tabId, frameIds: [details.frameId] },
+                        func: code => {
+                            const el = document.createElement('script');
+                            el.textContent = code;
+                            (document.head || document.documentElement).appendChild(el);
+                            el.remove();
+                        },
+                        args: [rule.file],
+                        world: 'MAIN',
+                    });
+                } else if (rule.fileType === 'css') {
+                    await chrome.scripting.insertCSS({
+                        target: { tabId: details.tabId },
+                        css: rule.file,
+                        origin: "USER"
+                    });
                 }
-            });
+            } catch (e) {
+                console.warn(`fileInject rule ${rule.id} failed on ${details.url}:`, e.message);
+            }
         }
-    });
+    }
 });

@@ -11,6 +11,7 @@ import setupNetRequestRules from "./netRequestRules.js";
 import { requestHeaders, responseHeaders } from "./headers.js";
 import { tabGroupsInit, createDomainMarkup } from "./tabGroup.js";
 import initOptions, { updateOptions } from "./options.js";
+import { closeEditor } from "./editor.js";
 
 /* globals chrome */
 const ui = getUiElements(document);
@@ -123,6 +124,7 @@ async function init() {
 
     const messageActions = {
         sync: () => {
+            closeEditor();
             renderData();
         },
     };

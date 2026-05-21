@@ -52,10 +52,14 @@ async function saveFile() {
     }
 }
 
-async function saveFileAndClose() {
-    await saveFile();
+export function closeEditor() {
     ui.editorOverlay.style.display = "none";
     ui.body.style.overflow = "auto";
+}
+
+async function saveFileAndClose() {
+    await saveFile();
+    closeEditor();
 }
 
 function setupEditor() {
@@ -137,10 +141,7 @@ ui.fileSaveAndCloseBtn.addEventListener("click", saveFileAndClose);
 
 ui.fileSaveBtn.addEventListener("click", saveFile);
 
-ui.fileCancelBtn.addEventListener("click", () => {
-    ui.editorOverlay.style.display = "none";
-    ui.body.style.overflow = "auto";
-});
+ui.fileCancelBtn.addEventListener("click", closeEditor);
 
 ui.loadSelect.addEventListener("change", () => {
     const url = ui.loadSelect.value;

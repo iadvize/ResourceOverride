@@ -30,12 +30,14 @@ const setupNetRequestRules = async (group = {}, deletedRuleIds = [], ruleErrors 
     });
     const removeRuleIds = allRuleIds.concat(deletedRuleIds);
     const newRules = [];
+    const MAX_DATA_URL_BYTES = 8192;
     if (group.on) {
-        const fileOverrideRules = rules.filter(r => r.type === 'fileOverride' && r.on && r.file === undefined);
+        const fileOverrideRules = rules.filter(r => r.type === 'fileOverride' && r.on);
+        const fileContents = {};
         if (fileOverrideRules.length > 0) {
             const fileIds = Object.fromEntries(fileOverrideRules.map(r => [`f${r.id}`, '']));
             const files = await chrome.storage.local.get(fileIds);
-            fileOverrideRules.forEach(r => { r.file = files[`f${r.id}`] || ''; });
+            fileOverrideRules.forEach(r => { fileContents[r.id] = files[`f${r.id}`] || ''; });
         }
 
         rules.forEach((rule, idx) => {
@@ -58,17 +60,22 @@ const setupNetRequestRules = async (group = {}, deletedRuleIds = [], ruleErrors 
                         }
                     });
                 } else if (rule.type === "fileOverride" && rule.match) {
-                    const mimeAndFile = extractMimeType(rule.match, rule.file);
+                    const fileContent = fileContents[rule.id] || "";
+                    const mimeAndFile = extractMimeType(rule.match, fileContent);
                     const transformedMatchReplace = transformMatchReplace(rule.match, "");
+                    const dataUrl = "data:" + mimeAndFile.mime + ";charset=UTF-8;base64," +
+                        btoa(unescape(encodeURIComponent(mimeAndFile.file || "")));
+                    if (dataUrl.length > MAX_DATA_URL_BYTES) {
+                        ruleErrors[rule.id] =
+                            `File too large for DNR (${dataUrl.length} bytes, max ${MAX_DATA_URL_BYTES}).`;
+                        return;
+                    }
                     newRules.push({
                         id: rule.id,
                         priority,
                         action: {
                             type: "redirect",
-                            redirect: {
-                                url: "data:" + mimeAndFile.mime + ";charset=UTF-8;base64," +
-                                btoa(unescape(encodeURIComponent(mimeAndFile.file || "")))
-                            }
+                            redirect: { url: dataUrl }
                         },
                         condition: {
                             resourceTypes: allResourceTypes,
