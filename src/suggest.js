@@ -6,7 +6,7 @@ const suggest = () => {
     let suggestTable;
     let currentInput;
     let appended = false;
-    let selectedIndex = 0;
+    let selectedIndex = -1;
     let numOptions = 0;
     let hideTillNextFocus = false;
     let options;
@@ -57,7 +57,7 @@ const suggest = () => {
                     suggestBox.style.left = boundingRect.left + "px";
                     suggestBox.style.maxWidth = (boundingRect.width + 6) + "px";
                     show();
-                    selectedIndex = 0;
+                    selectedIndex = -1;
                     filterOptions(input.value, useStars, caseInsensitive);
                 }
             });
@@ -75,8 +75,13 @@ const suggest = () => {
                         suggestBox.scrollLeft -= 32;
                     } else if (code === 39) { // RIGHT
                         suggestBox.scrollLeft += 32;
-                    } else if (code === 13 || code === 9) { // Enter or Tab
-                        completeInput(input);
+                    } else if (code === 13) { // Enter: only complete if user explicitly arrowed to a suggestion
+                        if (selectedIndex >= 0 && options[selectedIndex] && options[selectedIndex].style.display !== "none") {
+                            e.preventDefault();
+                            completeInput(input);
+                        }
+                        suggestBox.style.display = "none";
+                    } else if (code === 9) { // Tab: keep native focus move, just hide
                         suggestBox.style.display = "none";
                     } else if (code === 27) { // ESC
                         suggestBox.style.display = "none";
@@ -197,7 +202,7 @@ const suggest = () => {
         } else {
             show();
         }
-        if (options[selectedIndex].style.display === "none") {
+        if (selectedIndex >= 0 && options[selectedIndex] && options[selectedIndex].style.display === "none") {
             selectUp();
         }
         highlightOption();
@@ -241,10 +246,11 @@ const suggest = () => {
     }
 
     function highlightOption() {
-        const optionToHighlight = options[0];
         options.forEach(option => {
             option.style.background = "#ffffff";
         });
+        if (selectedIndex < 0 || !options[selectedIndex]) return;
+        const optionToHighlight = options[selectedIndex];
         optionToHighlight.style.background = "#aaaaaa";
         fixScroll(optionToHighlight);
     }

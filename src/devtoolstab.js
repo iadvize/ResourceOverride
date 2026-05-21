@@ -4,7 +4,8 @@ import {
     fadeOut,
     fadeIn,
     getNextGroupId,
-    saveDataAndSync
+    saveDataAndSync,
+    debounce
 } from "./util.js";
 import { mainSuggest, requestHeadersSuggest, responseHeadersSuggest } from "./suggest.js";
 import setupNetRequestRules from "./netRequestRules.js";
@@ -17,6 +18,38 @@ import { closeEditor } from "./editor.js";
 const ui = getUiElements(document);
 
 let allRuleErrors = {};
+
+const isContextInvalidated = (err) =>
+    err && /Extension context invalidated|context invalidated/i.test(err.message || String(err));
+
+let contextLostBanner;
+const showContextLostBanner = () => {
+    if (contextLostBanner) return;
+    contextLostBanner = document.createElement("div");
+    contextLostBanner.textContent =
+        "Resource Override was reloaded. Close and reopen this DevTools panel (or refresh the page) to reconnect.";
+    Object.assign(contextLostBanner.style, {
+        position: "fixed", top: "0", left: "0", right: "0",
+        background: "#b00", color: "#fff", padding: "10px 14px",
+        font: "13px sans-serif", textAlign: "center", zIndex: "999999",
+        cursor: "pointer"
+    });
+    contextLostBanner.addEventListener("click", () => location.reload());
+    document.body.appendChild(contextLostBanner);
+};
+
+window.addEventListener("unhandledrejection", (e) => {
+    if (isContextInvalidated(e.reason)) {
+        e.preventDefault();
+        showContextLostBanner();
+    }
+});
+window.addEventListener("error", (e) => {
+    if (isContextInvalidated(e.error)) {
+        e.preventDefault();
+        showContextLostBanner();
+    }
+});
 
 const saveRuleGroup = async (group, removedIds = []) => {
     const ruleGroups = (await chrome.storage.local.get({ ruleGroups: [] })).ruleGroups;
@@ -31,6 +64,12 @@ const saveRuleGroup = async (group, removedIds = []) => {
     const ruleErrors = await setupNetRequestRules(group, removedIds);
     allRuleErrors[group.id] = ruleErrors;
 };
+
+function refreshSuggestions() {
+    return getTabResources((res) => {
+        mainSuggest.fillOptions(res);
+    });
+}
 
 async function renderData() {
     ui.domainDefs.innerHTML = "";
@@ -52,9 +91,7 @@ async function renderData() {
         ui.domainDefs.appendChild(newGroup);
         saveRuleGroup(newGroupData);
     }
-    const isSuggestSupported = getTabResources((res) => {
-        mainSuggest.fillOptions(res);
-    });
+    const isSuggestSupported = refreshSuggestions();
     if (!isSuggestSupported) {
         mainSuggest.setShouldSuggest(false);
     }
@@ -179,6 +216,16 @@ async function init() {
                 activeEl.selectionEnd = start + 1;
             }
         });
+    }
+
+    if (chrome.devtools && chrome.devtools.network) {
+        const refreshDebounced = debounce(refreshSuggestions, 300);
+        if (chrome.devtools.network.onNavigated) {
+            chrome.devtools.network.onNavigated.addListener(refreshDebounced);
+        }
+        if (chrome.devtools.inspectedWindow && chrome.devtools.inspectedWindow.onResourceAdded) {
+            chrome.devtools.inspectedWindow.onResourceAdded.addListener(refreshDebounced);
+        }
     }
 
     await renderData();
