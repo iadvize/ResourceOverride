@@ -35,7 +35,7 @@ export const createEl = (tagWithClasses, attrs = {}) => {
 export const deleteButtonIsSure = (deleteBtn) => {
     if (!deleteBtn.dataset.isSure) {
         deleteBtn.dataset.isSure = 1;
-        deleteBtn.style.fontSize = "10px";
+        deleteBtn.dataset.originalHtml = deleteBtn.innerHTML;
         deleteBtn.textContent = "Sure?";
         return false;
     }
@@ -43,9 +43,11 @@ export const deleteButtonIsSure = (deleteBtn) => {
 };
 
 export const deleteButtonIsSureReset = (deleteBtn) => {
-    deleteBtn.textContent = "\u00d7";
-    deleteBtn.style.fontSize = "28px";
+    if (deleteBtn.dataset.originalHtml) {
+        deleteBtn.innerHTML = deleteBtn.dataset.originalHtml;
+    }
     delete deleteBtn.dataset.isSure;
+    delete deleteBtn.dataset.originalHtml;
 };
 
 export const debounce = (fn, amt) => {
@@ -97,11 +99,7 @@ export const getNextRuleId = (ruleGroups) => {
 
 export const makeFieldRequired = (input) => {
     const checkRequiredField = () => {
-        if (input.value === "") {
-            input.style.background = "#faa";
-        } else {
-            input.style.background = "#fff";
-        }
+        input.classList.toggle("invalid", input.value === "");
     };
     input.addEventListener("input", checkRequiredField);
     checkRequiredField();
@@ -227,3 +225,105 @@ export const debug = (message) => {
     debugDiv.appendChild(log);
 };
 
+
+// UI state (which groups are folded, which rules are unfolded). Kept apart from ruleGroups
+// so it never triggers a rules sync.
+let uiStatePromise;
+const loadUiState = () => {
+    uiStatePromise = uiStatePromise || chrome.storage.local.get({ uiState: {} }).then(res => res.uiState);
+    return uiStatePromise;
+};
+
+const updateUiState = async (mutate) => {
+    const uiState = await loadUiState();
+    uiState.collapsedGroups = uiState.collapsedGroups || [];
+    uiState.expandedRules = uiState.expandedRules || [];
+    mutate(uiState);
+    await chrome.storage.local.set({ uiState });
+};
+
+const toggleInList = (list, value, present) => {
+    const idx = list.indexOf(value);
+    if (present && idx === -1) {
+        list.push(value);
+    } else if (!present && idx > -1) {
+        list.splice(idx, 1);
+    }
+};
+
+export const forgetGroupUiState = (groupId) => updateUiState(s => toggleInList(s.collapsedGroups, groupId, false));
+
+export const forgetRuleUiState = (ruleId) => updateUiState(s => toggleInList(s.expandedRules, ruleId, false));
+
+// "https://*.iadvize.com/a/b.js" -> "*.iadvize.com/a/b.js"
+export const shortenUrl = (url = "") => url.trim().replace(/^[a-z*]+:\/\//i, "");
+
+export const setupGroupAccordion = async (domain, groupId) => {
+    const toggle = domain.querySelector(".domainToggle");
+    const rulesContainer = domain.querySelector(".overrideRules");
+    const count = domain.querySelector(".ruleCount");
+
+    const updateCount = () => {
+        const nb = rulesContainer.querySelectorAll(".ruleContainer").length;
+        count.textContent = `${nb} rule${nb === 1 ? "" : "s"}`;
+    };
+    updateCount();
+    new MutationObserver(updateCount).observe(rulesContainer, { childList: true });
+
+    const setCollapsed = (collapsed) => {
+        domain.classList.toggle("collapsed", collapsed);
+        toggle.setAttribute("aria-expanded", String(!collapsed));
+    };
+    const groupSwitch = domain.querySelector(".domainHeader .onoffswitch-checkbox");
+    const uiState = await loadUiState();
+    // A disabled group starts folded: nothing in it is active anyway.
+    setCollapsed(!groupSwitch.checked || (uiState.collapsedGroups || []).includes(groupId));
+
+    const changeCollapsed = (collapsed) => {
+        setCollapsed(collapsed);
+        updateUiState(s => toggleInList(s.collapsedGroups, groupId, collapsed));
+    };
+
+    toggle.addEventListener("click", () => changeCollapsed(!domain.classList.contains("collapsed")));
+
+    // Fold the group when it gets disabled, unfold it when it gets enabled again.
+    groupSwitch.addEventListener("change", () => changeCollapsed(!groupSwitch.checked));
+};
+
+// Rules are folded by default: only the head row shows, with a summary of the rule
+// (from -> to) on the left and the alias next to the on/off switch on the right.
+export const setupRuleAccordion = async (rule, ruleId, getSummary, startExpanded) => {
+    const toggle = rule.querySelector(".ruleToggle");
+    const summary = rule.querySelector(".ruleSummary");
+
+    const refreshSummary = () => {
+        const text = getSummary();
+        summary.textContent = text;
+        summary.title = text;
+    };
+    refreshSummary();
+    rule.addEventListener("input", refreshSummary);
+    rule.addEventListener("change", refreshSummary);
+
+    const setExpanded = (expanded) => {
+        rule.classList.toggle("collapsed", !expanded);
+        toggle.setAttribute("aria-expanded", String(expanded));
+    };
+    setExpanded(startExpanded);
+
+    const uiState = await loadUiState();
+    if (startExpanded) {
+        updateUiState(s => toggleInList(s.expandedRules, ruleId, true));
+    } else {
+        setExpanded((uiState.expandedRules || []).includes(ruleId));
+    }
+
+    const toggleRule = () => {
+        const expanded = rule.classList.contains("collapsed");
+        setExpanded(expanded);
+        updateUiState(s => toggleInList(s.expandedRules, ruleId, expanded));
+    };
+    toggle.addEventListener("click", toggleRule);
+    rule.querySelector(".typeBadge").addEventListener("click", toggleRule);
+    summary.addEventListener("click", toggleRule);
+};

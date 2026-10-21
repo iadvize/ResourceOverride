@@ -76,10 +76,8 @@ async function renderData() {
     const ruleGroups = (await chrome.storage.local.get({ ruleGroups: [] })).ruleGroups;
 
     if (ruleGroups.length) {
-        ruleGroups.forEach(async (group) => {
-            const markup = await createDomainMarkup(group);
-            ui.domainDefs.appendChild(markup);
-        });
+        const markups = await Promise.all(ruleGroups.map(group => createDomainMarkup(group)));
+        markups.forEach(markup => ui.domainDefs.appendChild(markup));
     } else {
         const newGroupData = {
             id: 1,

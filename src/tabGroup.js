@@ -13,7 +13,9 @@ import {
     deleteButtonIsSure,
     deleteButtonIsSureReset,
     getNextGroupId,
-    saveDataAndSync
+    saveDataAndSync,
+    setupGroupAccordion,
+    forgetGroupUiState
 } from "./util.js";
 
 /* globals chrome */
@@ -103,6 +105,8 @@ export const createDomainMarkup = async (savedData) => {
         }
     }
 
+    setupGroupAccordion(domain, id);
+
     const mvRules = moveableRules(overrideRulesContainer, ".handle");
     mvRules.onMove(saveFunc);
 
@@ -142,6 +146,7 @@ export const createDomainMarkup = async (savedData) => {
         fadeOut(domain);
         setTimeout(async () => {
             domain.remove();
+            forgetGroupUiState(id);
             const ruleGroups = (await chrome.storage.local.get({ ruleGroups: [] })).ruleGroups;
             const ruleGroup = ruleGroups.find(g => g.id === id);
             if (ruleGroup) {

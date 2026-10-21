@@ -9,6 +9,7 @@ export const getDomainData = (domain) => {
             rules.push({
                 id: parseRuleId(el.id),
                 type: "normalOverride",
+                alias: el.querySelector(".aliasInput").value,
                 match: el.querySelector(".matchInput").value,
                 replace: el.querySelector(".replaceInput").value,
                 on: el.querySelector(".onoffswitch-checkbox").checked
@@ -17,6 +18,7 @@ export const getDomainData = (domain) => {
             rules.push({
                 id: parseRuleId(el.id),
                 type: "fileOverride",
+                alias: el.querySelector(".aliasInput").value,
                 match: el.querySelector(".matchInput").value,
                 on: el.querySelector(".onoffswitch-checkbox").checked
             });
@@ -24,6 +26,7 @@ export const getDomainData = (domain) => {
             rules.push({
                 id: parseRuleId(el.id),
                 type: "fileInject",
+                alias: el.querySelector(".aliasInput").value,
                 match: el.querySelector(".matchInput").value,
                 fileName: el.querySelector(".fileName").value,
                 fileType: el.querySelector(".fileTypeSelect").value,
@@ -33,6 +36,7 @@ export const getDomainData = (domain) => {
             rules.push({
                 id: parseRuleId(el.id),
                 type: "headerRule",
+                alias: el.querySelector(".aliasInput").value,
                 match: el.querySelector(".matchInput").value,
                 requestRules: el.querySelector(".requestRules").dataset.rules || "",
                 responseRules: el.querySelector(".responseRules").dataset.rules || "",
@@ -62,7 +66,9 @@ const checkObject = (obj, requiredFields = [], customTests = {}) => {
 
 const copyFields = (to, from, fields) => {
     fields.forEach(field => {
-        to[field] = from[field];
+        if (from[field] !== undefined) {
+            to[field] = from[field];
+        }
     });
 };
 
@@ -99,15 +105,15 @@ const versionedImports = {
             ruleGroup.rules.forEach(rule => {
                 const importedRule = { id: nextRuleId++ };
                 if (rule.type === "normalOverride") {
-                    copyFields(importedRule, rule, ["type", "match", "replace", "on"]);
+                    copyFields(importedRule, rule, ["type", "alias", "match", "replace", "on"]);
                 } else if (rule.type === "fileOverride") {
-                    copyFields(importedRule, rule, ["type", "match", "on"]);
+                    copyFields(importedRule, rule, ["type", "alias", "match", "on"]);
                     dataToStore[`f${importedRule.id}`] = rule.file;
                 } else if (rule.type === "fileInject") {
-                    copyFields(importedRule, rule, ["type", "match", "fileName", "fileType", "on"]);
+                    copyFields(importedRule, rule, ["type", "alias", "match", "fileName", "fileType", "on"]);
                     dataToStore[`f${importedRule.id}`] = rule.file;
                 } else if (rule.type === "headerRule") {
-                    copyFields(importedRule, rule, ["type", "match", "requestRules", "responseRules", "on"]);
+                    copyFields(importedRule, rule, ["type", "alias", "match", "requestRules", "responseRules", "on"]);
                 }
                 rules.push(importedRule);
             });
@@ -161,15 +167,15 @@ const versionedImports = {
             ruleGroup.rules.forEach(rule => {
                 const importedRule = { id: nextRuleId++ };
                 if (rule.type === "normalOverride") {
-                    copyFields(importedRule, rule, ["type", "match", "replace", "on"]);
+                    copyFields(importedRule, rule, ["type", "alias", "match", "replace", "on"]);
                 } else if (rule.type === "fileOverride") {
-                    copyFields(importedRule, rule, ["type", "match", "on"]);
+                    copyFields(importedRule, rule, ["type", "alias", "match", "on"]);
                     dataToStore[`f${importedRule.id}`] = rule.file;
                 } else if (rule.type === "fileInject") {
-                    copyFields(importedRule, rule, ["type", "match", "fileName", "fileType", "on"]);
+                    copyFields(importedRule, rule, ["type", "alias", "match", "fileName", "fileType", "on"]);
                     dataToStore[`f${importedRule.id}`] = rule.file;
                 } else if (rule.type === "headerRule") {
-                    copyFields(importedRule, rule, ["type", "match", "requestRules", "responseRules", "on"]);
+                    copyFields(importedRule, rule, ["type", "alias", "match", "requestRules", "responseRules", "on"]);
                 }
                 rules.push(importedRule);
             });

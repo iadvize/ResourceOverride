@@ -9,33 +9,27 @@
 </head>
 <body id="body">
 <template id="onOffSwitchTemplate">
-    <div class="onoffswitch">
+    <label class="onoffswitch" title="Enable / disable">
         <input type="checkbox" class="onoffswitch-checkbox" checked>
-        <label class="onoffswitch-label">
-            <span class="onoffswitch-inner">
-                <div class="onoffswitch-on">ON</div>
-                <div class="onoffswitch-off">OFF</div>
-            </span>
-            <span class="onoffswitch-switch"></span>
-        </label>
-    </div>
+        <span class="onoffswitch-track"><span class="onoffswitch-thumb"></span></span>
+    </label>
 </template>
 
 <template id="domainTemplate">
     <div class="domainContainer">
         <div class="domainHeader">
-            <div class="domainText">
-                Group Name:
+            <button class="domainToggle btn btn-ghost" title="Expand / collapse" aria-expanded="true"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <div class="domainTitle">
+                <span class="fieldLabel">Group</span>
+                <input type="input" class="domainMatchInput" placeholder="Group name (e.g. Checkout staging)">
             </div>
-            <div class="domain">
-                <input type="input" class="domainMatchInput" placeholder="My Common Rules">
-            </div>
+            <span class="ruleCount"></span>
             <div class="addRule">
-                <button class="btn addRuleBtn">Add Rule</button>
+                <button class="btn btn-primary addRuleBtn">+ Add rule</button>
             </div>
             <div class="switch"></div>
             <div class="delete">
-                <button class="deleteBtn btn sym-btn">&#215</button>
+                <button class="deleteBtn btn btn-ghost sym-btn" title="Delete group"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M5 4.5l.5 8h5l.5-8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
             </div>
         </div>
         <div class="overrideRules">
@@ -46,120 +40,138 @@
 
 <template id="overrideTemplate">
     <div class="ruleContainer normalOverride">
-        <div class="handle">
-            <div class="arrow-up"></div><div class="arrow-down"></div>
+        <div class="handle" title="Drag to reorder"><span></span><span></span><span></span></div>
+        <div class="ruleBody">
+            <div class="ruleHead">
+                <button class="ruleToggle btn btn-ghost" title="Expand / collapse" aria-expanded="false"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <span class="typeBadge">URL &rarr; URL</span>
+                <span class="ruleSummary"></span>
+                <input type="input" class="aliasInput" placeholder="Alias">
+                <div class="switch"></div>
+            </div>
+            <div class="ruleFields">
+                <div class="field">
+                    <span class="fieldLabel">From</span>
+                    <input type="input" class="matchInput" placeholder="Match URL">
+                </div>
+                <div class="fieldArrow">&rarr;</div>
+                <div class="field">
+                    <span class="fieldLabel">To</span>
+                    <input type="input" class="replaceInput" placeholder="Replace URL">
+                </div>
+            </div>
         </div>
-        <div class="match">
-            From:
-        </div>
-        <div class="rule">
-            <input type="input" class="matchInput" placeholder="Match URL">
-        </div>
-        <div class="arrow">
-            To:
-        </div>
-        <div class="rule">
-            <input type="input" class="replaceInput" placeholder="Replace URL">
-        </div>
-        <div class="switch"></div>
-        <div class="delete">
-            <button class="btn sym-btn">&#215</button>
+        <div class="ruleActions">
+            <div class="delete">
+                <button class="btn btn-ghost sym-btn" title="Delete rule"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M5 4.5l.5 8h5l.5-8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            </div>
         </div>
     </div>
 </template>
 
 <template id="fileOverrideTemplate">
     <div class="ruleContainer fileOverride">
-        <div class="handle">
-            <div class="arrow-up"></div><div class="arrow-down"></div>
+        <div class="handle" title="Drag to reorder"><span></span><span></span><span></span></div>
+        <div class="ruleBody">
+            <div class="ruleHead">
+                <button class="ruleToggle btn btn-ghost" title="Expand / collapse" aria-expanded="false"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <span class="typeBadge typeFile">URL &rarr; File</span>
+                <span class="ruleSummary"></span>
+                <input type="input" class="aliasInput" placeholder="Alias">
+                <div class="switch"></div>
+            </div>
+            <div class="ruleFields">
+                <div class="field">
+                    <span class="fieldLabel">From</span>
+                    <input type="input" class="matchInput" placeholder="Match URL">
+                </div>
+                <div class="fieldArrow">&rarr;</div>
+                <div class="field fieldAuto">
+                    <button class="btn edit-btn">Edit file</button>
+                </div>
+            </div>
         </div>
-        <div class="match">
-            From:
-        </div>
-        <div class="rule">
-            <input type="input" class="matchInput" placeholder="Match URL">
-        </div>
-        <div class="arrow">
-            To:
-        </div>
-        <div class="edit">
-            <button class="btn edit-btn">Edit File</button>
-        </div>
-        <div class="switch"></div>
-        <div class="delete">
-            <button class="btn sym-btn">&#215</button>
+        <div class="ruleActions">
+            <div class="delete">
+                <button class="btn btn-ghost sym-btn" title="Delete rule"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M5 4.5l.5 8h5l.5-8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            </div>
         </div>
     </div>
 </template>
 
 <template id="fileInjectTemplate">
     <div class="ruleContainer fileInject">
-        <div class="handle">
-            <div class="arrow-up"></div><div class="arrow-down"></div>
+        <div class="handle" title="Drag to reorder"><span></span><span></span><span></span></div>
+        <div class="ruleBody">
+            <div class="ruleHead">
+                <button class="ruleToggle btn btn-ghost" title="Expand / collapse" aria-expanded="false"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <span class="typeBadge typeInject">Inject</span>
+                <span class="ruleSummary"></span>
+                <input type="input" class="aliasInput" placeholder="Alias">
+                <div class="switch"></div>
+            </div>
+            <div class="ruleFields">
+                <div class="field">
+                    <span class="fieldLabel">Inject on</span>
+                    <input type="input" class="matchInput" placeholder="Match URL">
+                </div>
+                <div class="field">
+                    <span class="fieldLabel">File name</span>
+                    <input type="input" class="fileName" placeholder="File name (optional)">
+                </div>
+                <div class="field fieldAuto">
+                    <span class="fieldLabel">Type</span>
+                    <select class="fileTypeSelect">
+                        <option value="js">JS</option>
+                        <option value="css">CSS</option>
+                    </select>
+                </div>
+                <div class="field fieldAuto">
+                    <button class="btn edit-btn">Edit file</button>
+                </div>
+            </div>
         </div>
-        <div class="match" style="flex-basis: 56px;">
-            Inject On:
-        </div>
-        <div class="rule">
-            <input type="input" class="matchInput" placeholder="Match URL">
-        </div>
-        <div class="match">
-            Name:
-        </div>
-        <div class="rule">
-            <input type="input" class="fileName" placeholder="File Name (Optional)">
-        </div>
-        <div class="typeText">
-            File Type:
-        </div>
-        <div class="fileType">
-            <select class="fileTypeSelect">
-                <option value="js">JS</option>
-                <option value="css">CSS</option>
-            </select>
-        </div>
-        <!-- <div class="injectText">
-            Inject into:
-        </div>
-        <div class="injectLocation">
-            <select class="injectLocationSelect">
-                <option value="head">Head</option>
-                <option value="body">Body</option>
-            </select>
-        </div> -->
-        <div class="edit">
-            <button class="btn edit-btn">Edit File</button>
-        </div>
-        <div class="switch"></div>
-        <div class="delete">
-            <button class="btn sym-btn">&#215</button>
+        <div class="ruleActions">
+            <div class="delete">
+                <button class="btn btn-ghost sym-btn" title="Delete rule"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M5 4.5l.5 8h5l.5-8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            </div>
         </div>
     </div>
 </template>
 
 <template id="headerRuleTemplate">
     <div class="ruleContainer headerRule">
-        <div class="handle">
-            <div class="arrow-up"></div><div class="arrow-down"></div>
+        <div class="handle" title="Drag to reorder"><span></span><span></span><span></span></div>
+        <div class="ruleBody">
+            <div class="ruleHead">
+                <button class="ruleToggle btn btn-ghost" title="Expand / collapse" aria-expanded="false"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <span class="typeBadge typeHeader">Headers</span>
+                <span class="ruleSummary"></span>
+                <input type="input" class="aliasInput" placeholder="Alias">
+                <div class="switch"></div>
+            </div>
+            <div class="ruleFields">
+                <div class="field">
+                    <span class="fieldLabel">For</span>
+                    <input type="input" class="matchInput" placeholder="Match URL">
+                </div>
+                <div class="field">
+                    <span class="fieldLabel">Request headers</span>
+                    <input type="input" class="requestRules headerRuleInput" placeholder="Click to edit" readonly="">
+                </div>
+                <div class="field">
+                    <span class="fieldLabel">Response headers</span>
+                    <input type="input" class="responseRules headerRuleInput" placeholder="Click to edit" readonly="">
+                </div>
+                <div class="field fieldAuto">
+                    <button class="btn edit-btn">Edit headers</button>
+                </div>
+            </div>
         </div>
-        <div class="ruleType">
-            For:
-        </div>
-        <div class="rule">
-            <input type="input" class="matchInput" placeholder="Match URL">
-        </div>
-        <div class="rule">
-            <input type="input" class="requestRules headerRuleInput" placeholder="Request Headers (click to edit)" readonly="">
-        </div>
-        <div class="rule">
-            <input type="input" class="responseRules headerRuleInput" placeholder="Response Headers (click to edit)" readonly="">
-        </div>
-        <div class="edit">
-            <button class="btn edit-btn">Edit Headers</button>
-        </div>
-        <div class="switch"></div>
-        <div class="delete">
-            <button class="btn sym-btn">&#215</button>
+        <div class="ruleActions">
+            <div class="delete">
+                <button class="btn btn-ghost sym-btn" title="Delete rule"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M5 4.5l.5 8h5l.5-8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            </div>
         </div>
     </div>
 </template>
@@ -172,57 +184,56 @@
                 <option value="remove">Remove</option>
             </select>
         </div>
-        <div class="headerLabel">
-            Header:
-        </div>
         <div class="headerInputContainer">
             <input type="input" class="headerName" placeholder="Header">
-        </div>
-        <div class="valueLabel">
-            Value:
         </div>
         <div class="headerInputContainer">
             <input type="input" class="headerValue" placeholder="Value">
         </div>
         <div class="delete">
-            <button class="btn sym-btn">&#215</button>
+            <button class="btn btn-ghost sym-btn" title="Delete header"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M5 4.5l.5 8h5l.5-8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         </div>
     </div>
 </template>
 
-<div id="title">
-    <h1>Resource Override</h1>
-</div>
+<header id="topbar">
+    <div id="title">
+        <img src="../assets/iadvize_logo.jpeg" alt="iAdvize">
+        <h1>Resource Override</h1>
+        <span class="titleTag">iAdvize</span>
+    </div>
 
-<div id="helpAndOptions">
-    <div class="optionsBtnContainer"><button id="optionsBtn" class="btn">Options</button></div>
-    <div class="helpBtnContainer"><button id="helpBtn" class="btn">Help</button></div>
+    <div id="helpAndOptions">
+        <div class="optionsBtnContainer"><button id="optionsBtn" class="btn">Options</button></div>
+        <div class="helpBtnContainer"><button id="helpBtn" class="btn">Help</button></div>
 
-    <div id="optionsPopOver">
-        <div class="optionRow">
-            <div class="optionText">Show DevTools Tab:</div>
-            <div class="optionCheckbox"><input type="checkbox" id="showDevTools"></div>
-        </div>
-        <div class="optionRow">
-            <div class="left"><a id="saveRulesLink" href="#">Save Rules</a></div>
-            <div class="right"><a id="loadRulesLink" href="#">Load Rules</a></div>
-            <input type="file" class="fileInput" id="loadRulesInput">
+        <div id="optionsPopOver">
+            <div class="optionRow">
+                <div class="optionText">Show DevTools tab</div>
+                <div class="optionCheckbox"><input type="checkbox" id="showDevTools"></div>
+            </div>
+            <div class="optionRow optionLinks">
+                <a id="saveRulesLink" href="#">Save rules</a>
+                <a id="loadRulesLink" href="#">Load rules</a>
+                <input type="file" class="fileInput" id="loadRulesInput">
+            </div>
         </div>
     </div>
-</div>
-<div class="clearfix"></div>
+</header>
 
-<div id="domainDefs"></div>
+<main id="page">
+    <div id="domainDefs"></div>
 
-<div id="addDomain">
-    <button id="addDomainBtn" class="btn">Add Group</button>
-</div>
+    <div id="addDomain">
+        <button id="addDomainBtn" class="btn btn-primary">+ Add group</button>
+    </div>
+</main>
 
 <div id="addRuleDropdown">
     <button id="addWebRuleBtn" class="btn" title="Redirect resources to other URLs">URL <span>&rarr;</span> URL</button>
     <button id="addFileRuleBtn" class="btn" title="Redirect resources to a file you make">URL <span>&rarr;</span> File</button>
-    <button id="addInjectRuleBtn" class="btn" title="Inject content on a page">Inject File</button>
-    <button id="addHeaderRuleBtn" class="btn" title="Modify request or response headers">Change Headers</button>
+    <button id="addInjectRuleBtn" class="btn" title="Inject content on a page">Inject file</button>
+    <button id="addHeaderRuleBtn" class="btn" title="Modify request or response headers">Change headers</button>
 </div>
 
 <div id="editorOverlay" class="overlay">
@@ -252,7 +263,7 @@
     <div id="editor"></div>
     <div id="editorFooter">
         <div class="left"><button id="fileCancelBtn" class="btn">Cancel</button></div>
-        <div class="right"><button id="fileSaveAndCloseBtn" class="btn">Save &amp; Close</button></div>
+        <div class="right"><button id="fileSaveAndCloseBtn" class="btn btn-primary">Save &amp; Close</button></div>
         <div class="right"><button id="fileSaveBtn" class="btn">Save</button></div>
     </div>
 </div>
@@ -276,15 +287,15 @@
     <div class="headerRequestRules">
         <h2>Request Headers</h2>
         <div id="headerRequestRulesContainer"></div>
-        <button id="addRequestHeaderBtn" class="btn">Add Request Header Rule</button>
+        <button id="addRequestHeaderBtn" class="btn">+ Add request header rule</button>
     </div>
     <div class="headerResponseRules">
         <h2>Response Headers</h2>
         <div id="headerResponseRulesContainer"></div>
-        <button id="addResponseHeaderBtn" class="btn">Add Response Header Rule</button>
+        <button id="addResponseHeaderBtn" class="btn">+ Add response header rule</button>
     </div>
     <div id="headerRuleFooter">
-        <div class="right"><button id="closeHeaderRuleEditorBtn" class="btn">Close</button></div>
+        <div class="right"><button id="closeHeaderRuleEditorBtn" class="btn btn-primary">Close</button></div>
     </div>
 </div>
 
@@ -292,7 +303,7 @@
     <div id="helpContent">
         <h1>Help</h1>
         <p>View youtube help video <a href="https://www.youtube.com/watch?v=62QIWAP9mMM" target="_blank">HERE</a>.
-        <p style="color: red">Sometimes browser cache can stop overrides from working! Try reloading while holding shift or empty your cache!</p>
+        <p class="helpWarning">Sometimes browser cache can stop overrides from working! Try reloading while holding shift or empty your cache!</p>
         <p>This extension exists to help you gain full control of any website by redirecting traffic, replacing, editing, or inserting new content. It does this by comparing url "match rules" to the current tab url and then individual resource urls. If the urls match, then the rules are applied.</p>
         <p>Rules are put into "Tab Groups". A Tab Group has a URL text field that acts as the match pattern for Chrome's current tab. Rules inside the Tab Group wont apply unless the match is successful. This is a good way to make sure overrides only happen on a certain website.</p>
         <h3>Example Tab URL Matches:</h3>
