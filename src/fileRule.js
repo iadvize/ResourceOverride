@@ -6,7 +6,10 @@ import {
     makeFieldRequired,
     deleteButtonIsSure,
     deleteButtonIsSureReset,
-    fadeOut
+    fadeOut,
+    shortenUrl,
+    setupRuleAccordion,
+    forgetRuleUiState
 } from "./util.js";
 
 /* globals chrome */
@@ -24,11 +27,13 @@ const createFileOverrideMarkup = async (savedData, saveFunc) => {
     }
     const override = instanceTemplate(fileOverrideTemplate);
     override.id = `r${rid}`;
+    const aliasInput = override.querySelector(".aliasInput");
     const matchInput = override.querySelector(".matchInput");
     const editBtn = override.querySelector(".edit-btn");
     const ruleOnOff = override.querySelector(".onoffswitch-checkbox");
     const deleteBtn = override.querySelector(".sym-btn");
 
+    aliasInput.value = savedData.alias || "";
     matchInput.value = savedData.match || "";
     makeFieldRequired(matchInput);
     ruleOnOff.checked = savedData.on === false ? false : true;
@@ -50,6 +55,7 @@ const createFileOverrideMarkup = async (savedData, saveFunc) => {
         fadeOut(override);
         setTimeout(() => {
             override.remove();
+            forgetRuleUiState(rid);
             chrome.storage.local.remove(`f${rid}`);
             saveFunc({ removeIds: [rid] });
         }, 300);
@@ -61,6 +67,7 @@ const createFileOverrideMarkup = async (savedData, saveFunc) => {
 
     mainSuggest.init(matchInput);
 
+    aliasInput.addEventListener("keyup", saveFunc);
     matchInput.addEventListener("keyup", saveFunc);
     const changeOnOffSwitch = () => {
         if (ruleOnOff.checked) {
@@ -72,6 +79,8 @@ const createFileOverrideMarkup = async (savedData, saveFunc) => {
     };
     ruleOnOff.addEventListener("click", changeOnOffSwitch);
     ruleOnOff.addEventListener("change", changeOnOffSwitch);
+
+    setupRuleAccordion(override, rid, () => `${shortenUrl(matchInput.value)} \u2192 file`, !savedData.id);
 
     return override;
 };

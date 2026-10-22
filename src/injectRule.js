@@ -5,7 +5,10 @@ import {
     makeFieldRequired,
     deleteButtonIsSure,
     deleteButtonIsSureReset,
-    fadeOut
+    fadeOut,
+    shortenUrl,
+    setupRuleAccordion,
+    forgetRuleUiState
 } from "./util.js";
 
 /* globals chrome */
@@ -23,6 +26,7 @@ const createFileInjectMarkup = async (savedData, saveFunc) => {
     }
     const override = instanceTemplate(fileInjectTemplate);
     override.id = `r${rid}`;
+    const aliasInput = override.querySelector(".aliasInput");
     const matchInput = override.querySelector(".matchInput");
     const fileName = override.querySelector(".fileName");
     const fileType = override.querySelector(".fileTypeSelect");
@@ -30,6 +34,7 @@ const createFileInjectMarkup = async (savedData, saveFunc) => {
     const ruleOnOff = override.querySelector(".onoffswitch-checkbox");
     const deleteBtn = override.querySelector(".sym-btn");
 
+    aliasInput.value = savedData.alias || "";
     matchInput.value = savedData.match || "";
     makeFieldRequired(matchInput);
     fileName.value = savedData.fileName || "";
@@ -53,6 +58,7 @@ const createFileInjectMarkup = async (savedData, saveFunc) => {
         fadeOut(override);
         setTimeout(() => {
             override.remove();
+            forgetRuleUiState(rid);
             chrome.storage.local.remove(`f${rid}`);
             saveFunc();
         }, 300);
@@ -62,6 +68,7 @@ const createFileInjectMarkup = async (savedData, saveFunc) => {
         deleteButtonIsSureReset(deleteBtn);
     });
 
+    aliasInput.addEventListener("keyup", saveFunc);
     matchInput.addEventListener("keyup", saveFunc);
     fileName.addEventListener("keyup", saveFunc);
     const changeOnOffSwitch = () => {
@@ -75,6 +82,8 @@ const createFileInjectMarkup = async (savedData, saveFunc) => {
     ruleOnOff.addEventListener("click", changeOnOffSwitch);
     ruleOnOff.addEventListener("change", changeOnOffSwitch);
     fileType.addEventListener("change", saveFunc);
+
+    setupRuleAccordion(override, rid, () => `${fileType.value.toUpperCase()} on ${shortenUrl(matchInput.value)}`, !savedData.id);
 
     return override;
 };

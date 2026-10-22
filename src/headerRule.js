@@ -6,7 +6,10 @@ import {
     makeFieldRequired,
     deleteButtonIsSure,
     deleteButtonIsSureReset,
-    fadeOut
+    fadeOut,
+    shortenUrl,
+    setupRuleAccordion,
+    forgetRuleUiState
 } from "./util.js";
 
 /* globals chrome */
@@ -25,6 +28,7 @@ const createHeaderRuleMarkup = async (savedData, saveFunc) => {
     }
     const override = instanceTemplate(headerRuleTemplate);
     override.id = `r${rid}`;
+    const aliasInput = override.querySelector(".aliasInput");
     const matchInput = override.querySelector(".matchInput");
     const requestRulesInput = override.querySelector(".requestRules");
     const responseRulesInput = override.querySelector(".responseRules");
@@ -32,6 +36,7 @@ const createHeaderRuleMarkup = async (savedData, saveFunc) => {
     const ruleOnOff = override.querySelector(".onoffswitch-checkbox");
     const deleteBtn = override.querySelector(".sym-btn");
 
+    aliasInput.value = savedData.alias || "";
     matchInput.value = savedData.match || "";
     makeFieldRequired(matchInput);
 
@@ -65,6 +70,7 @@ const createHeaderRuleMarkup = async (savedData, saveFunc) => {
 
     mainSuggest.init(matchInput);
 
+    aliasInput.addEventListener("keyup", saveFunc);
     matchInput.addEventListener("keyup", saveFunc);
 
     override.addEventListener("click", (e) => {
@@ -82,6 +88,7 @@ const createHeaderRuleMarkup = async (savedData, saveFunc) => {
         fadeOut(override);
         setTimeout(() => {
             override.remove();
+            forgetRuleUiState(rid);
             saveFunc({ removeIds: [rid] });
         }, 300);
     });
@@ -100,6 +107,8 @@ const createHeaderRuleMarkup = async (savedData, saveFunc) => {
     };
     ruleOnOff.addEventListener("click", changeOnOffSwitch);
     ruleOnOff.addEventListener("change", changeOnOffSwitch);
+
+    setupRuleAccordion(override, rid, () => `Headers on ${shortenUrl(matchInput.value)}`, !savedData.id);
 
     return override;
 };

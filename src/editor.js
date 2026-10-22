@@ -10,13 +10,7 @@ let fileId;
 let isFileInject;
 
 function updateSaveButtons(edited) {
-    if (edited) {
-        ui.fileSaveAndCloseBtn.style.color = "#ff0000";
-        ui.fileSaveBtn.style.color = "#ff0000";
-    } else {
-        ui.fileSaveAndCloseBtn.style.color = "#000000";
-        ui.fileSaveBtn.style.color = "#000000";
-    }
+    ui.fileSaveBtn.classList.toggle("btn-dirty", !!edited);
 }
 
 function setEditorVal(str) {

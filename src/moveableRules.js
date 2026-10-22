@@ -24,7 +24,8 @@ const moveableRules = (parent, handleSelector) => {
     const getElFullHeight = function(el) {
         const innerHeight = el.getBoundingClientRect().height;
         const compStyle = window.getComputedStyle(el);
-        return innerHeight + parseInt(compStyle["margin-top"]);
+        const gap = parseInt(window.getComputedStyle(parent).rowGap) || 0;
+        return innerHeight + parseInt(compStyle["margin-top"]) + gap;
     };
 
     const getChildIndex = function(el) {
@@ -63,7 +64,7 @@ const moveableRules = (parent, handleSelector) => {
     const makeGrid = function() {
         grid = [];
         regetChildren();
-        let currentOffset = 0;
+        let currentOffset = parseInt(window.getComputedStyle(parent).paddingTop) || 0;
         children.forEach(function(el) {
             if (el !== currentMovingEl) {
                 currentOffset += getElFullHeight(el);
@@ -97,7 +98,7 @@ const moveableRules = (parent, handleSelector) => {
             if (dropTarget !== lastDropTarget) {
                 setBorders();
                 if (dropTarget) {
-                    dropTarget.style.background = "#dddddd";
+                    dropTarget.style.background = "rgb(230, 229, 250)";
                 }
                 lastDropTarget = dropTarget;
             }
@@ -146,6 +147,7 @@ const moveableRules = (parent, handleSelector) => {
             el.style.height = boundingRect.height + "px";
             el.style.top = e.pageY - offsetY + "px";
             el.style.opacity = 0.5;
+            placeholder.style.height = boundingRect.height + "px";
             makeGrid();
         });
     };

@@ -5,7 +5,10 @@ import {
     makeFieldRequired,
     deleteButtonIsSure,
     deleteButtonIsSureReset,
-    fadeOut
+    fadeOut,
+    shortenUrl,
+    setupRuleAccordion,
+    forgetRuleUiState
 } from "./util.js";
 
 /* globals chrome */
@@ -23,11 +26,13 @@ const createWebOverrideMarkup = async (savedData, saveFunc) => {
     }
     const override = instanceTemplate(overrideTemplate);
     override.id = `r${rid}`;
+    const aliasInput = override.querySelector(".aliasInput");
     const matchInput = override.querySelector(".matchInput");
     const replaceInput = override.querySelector(".replaceInput");
     const ruleOnOff = override.querySelector(".onoffswitch-checkbox");
     const deleteBtn = override.querySelector(".sym-btn");
 
+    aliasInput.value = savedData.alias || "";
     matchInput.value = savedData.match || "";
     replaceInput.value = savedData.replace || "";
     makeFieldRequired(matchInput);
@@ -46,6 +51,7 @@ const createWebOverrideMarkup = async (savedData, saveFunc) => {
         fadeOut(override);
         setTimeout(() => {
             override.remove();
+            forgetRuleUiState(rid);
             saveFunc({ removeIds: [rid] });
         }, 300);
     });
@@ -56,6 +62,7 @@ const createWebOverrideMarkup = async (savedData, saveFunc) => {
 
     mainSuggest.init(matchInput);
 
+    aliasInput.addEventListener("keyup", saveFunc);
     matchInput.addEventListener("keyup", saveFunc);
     replaceInput.addEventListener("keyup", saveFunc);
 
@@ -69,6 +76,8 @@ const createWebOverrideMarkup = async (savedData, saveFunc) => {
     };
     ruleOnOff.addEventListener("click", changeOnOffSwitch);
     ruleOnOff.addEventListener("change", changeOnOffSwitch);
+
+    setupRuleAccordion(override, rid, () => `${shortenUrl(matchInput.value)} \u2192 ${shortenUrl(replaceInput.value)}`, !savedData.id);
 
     return override;
 };
